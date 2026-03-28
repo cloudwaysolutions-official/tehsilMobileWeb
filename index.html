@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coming Soon</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lottie-web@5.12.2/build/player/lottie.min.js"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{min-height:100vh;display:flex;justify-content:center;align-items:center;background:#0f2027;color:#fff;padding:20px}
+.container{max-width:500px;width:100%;text-align:center;background:rgba(255,255,255,0.05);padding:25px;border-radius:20px;backdrop-filter:blur(15px)}
+h1{margin-bottom:10px}
+.subtitle{opacity:.8;margin-bottom:15px}
+#lottie{height:150px;margin-bottom:10px}
+.progress{height:6px;background:#222;border-radius:10px;overflow:hidden}
+.progress-bar{height:100%;width:0;background:#ff7a18}
+.email-box{display:flex;gap:10px;margin-top:15px}
+input{flex:1;padding:10px;border:none;border-radius:8px}
+button{padding:10px 14px;border:none;background:#ff7a18;color:#fff;border-radius:8px;cursor:pointer}
+.playstore-btn{display:inline-block;margin-top:10px;color:#fff;text-decoration:none}
+.chatbot{position:fixed;bottom:20px;right:20px;background:#ff7a18;padding:12px 16px;border-radius:30px;cursor:pointer}
+.chatbox{position:fixed;bottom:80px;right:20px;width:260px;background:#111;padding:10px;border-radius:10px;display:none}
+.chatbox input{width:100%;margin-top:5px}
+.chatlog div{margin:4px 0;font-size:.85rem}
+.counter{margin-top:10px;font-size:.9rem;opacity:.8}
+</style>
+</head>
+<body>
+
+<div id="lottie"></div>
+
+<div class="container">
+<h1>Coming Soon 🚀</h1>
+<div class="subtitle">Big launch coming...</div>
+
+<div class="progress"><div class="progress-bar" id="bar"></div></div>
+
+<div class="email-box">
+<input id="email" placeholder="Enter email">
+<button onclick="subscribe()">Notify</button>
+</div>
+
+<a href="#" id="playLink" class="playstore-btn">▶ Google Play</a>
+
+<div class="counter" id="counter"></div>
+</div>
+
+<div class="chatbot" onclick="toggleChat()">💬 Chat</div>
+
+<div class="chatbox" id="chatbox">
+<div id="chatLog" class="chatlog"></div>
+<input id="chatInput" placeholder="Say hi..." onkeydown="chat(event)">
+</div>
+
+<script>
+// Firebase config (REPLACE WITH YOURS)
+const firebaseConfig = {
+  apiKey: "AIzaSyAR7Uav5j2oNCQazkRnNAImmhCiNttfgsw",
+  authDomain: "android-tehsil.firebaseapp.com",
+  projectId: "android-tehsil"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Lottie
+lottie.loadAnimation({container:document.getElementById('lottie'),renderer:'svg',loop:true,autoplay:true,path:'https://assets2.lottiefiles.com/packages/lf20_kyu7xb1v.json'});
+
+// progress
+let p=0;setInterval(()=>{if(p<95){p+=1}bar.style.width=p+'%';},200);
+
+// SAVE EMAIL TO FIRESTORE
+async function subscribe(){
+  let email=document.getElementById('email').value;
+
+  if(!email.includes('@')){
+    alert('Enter valid email');
+    return;
+  }
+
+  try{
+    await db.collection("WebSubscribers").add({
+      email: email,
+      time: new Date()
+    });
+
+    alert('Saved 🎉');
+    document.getElementById('email').value='';
+  }catch(e){
+    alert('Error');
+    console.error(e);
+  }
+}
+
+// chatbot toggle
+function toggleChat(){
+  let box=document.getElementById('chatbox');
+  box.style.display = box.style.display==='block' ? 'none' : 'block';
+}
+
+// chatbot logic
+function showOptions(options){
+  let html='<div>';
+  options.forEach(opt=>{
+    html+=`<button onclick="selectOption('${opt}')" style="margin:3px;padding:5px 10px;border:none;border-radius:10px;background:#333;color:#fff">${opt}</button>`;
+  });
+  html+='</div>';
+  chatLog.innerHTML+=html;
+}
+
+function selectOption(text){
+  chatLog.innerHTML+=`<div>🧑 ${text}</div>`;
+  respond(text);
+}
+
+function respond(q){
+  q=q.toLowerCase();
+  let reply='';
+  let options=[];
+
+  if(q.includes('hi')||q.includes('hello')){
+    reply='Hi 👋 How can I help you?';
+    options=['Features','Launch Date','Download','Price'];
+  } else if(q.includes('feature')){
+    reply='App has powerful and easy features.';
+  } else if(q.includes('launch')){
+    reply='Launching very soon 🚀';
+  } else if(q.includes('download')){
+    reply='Download from Play Store above 📲';
+  } else if(q.includes('price')){
+    reply='App is FREE 🎉';
+  } else {
+    reply='Ask me about app 😊';
+    options=['Features','Launch Date','Download'];
+  }
+
+  setTimeout(()=>{
+    chatLog.innerHTML+=`<div>🤖 ${reply}</div>`;
+    if(options.length) showOptions(options);
+    chatLog.scrollTop=chatLog.scrollHeight;
+  },400);
+}
+
+function chat(e){
+  if(e.key==='Enter'){
+    let q=chatInput.value;
+    if(!q) return;
+    chatLog.innerHTML+=`<div>🧑 ${q}</div>`;
+    respond(q);
+    chatInput.value='';
+  }
+}
+
+// playstore link
+const url='https://play.google.com/store/apps/details?id=com.cloudwaysolutions.tehsil';
+playLink.href=url;
+
+// visitor counter
+let count=localStorage.getItem('visits')||0;
+count++;
+localStorage.setItem('visits',count);
+counter.innerText=count+' people waiting';
+</script>
+
+</body>
+</html>
